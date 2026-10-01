@@ -43,6 +43,8 @@ import com.noop.R
 import com.noop.ble.WhoopModel
 import com.noop.data.DemoSeeder
 import com.noop.data.WhoopRepository
+import com.noop.journalsync.JournalSyncScheduler
+import com.noop.journalsync.JournalSyncSettings
 import com.noop.push.SelfHostedPushScheduler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -135,6 +137,11 @@ class MainActivity : ComponentActivity() {
         // enabled. The Activity never reads health rows, credentials, or performs network I/O.
         lifecycleScope.launch(Dispatchers.IO) {
             runCatching { SelfHostedPushScheduler.enqueueLaunchCatchUp(applicationContext) }
+
+            // Journal Sync: queue a sync on launch when enabled (same deferred, non-blocking pattern).
+            if (JournalSyncSettings.from(applicationContext).snapshot().enabled) {
+                runCatching { JournalSyncScheduler.syncNow(applicationContext) }
+            }
         }
 
         // Load the Light/Dark/System + chart-colour preferences before first composition so the theme

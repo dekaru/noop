@@ -117,6 +117,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.noop.journalsync.JournalSyncScreen
 import com.noop.push.SelfHostedPushScreen
 
 // MARK: - Navigation model
@@ -191,6 +192,8 @@ internal enum class Destination(
     Settings("settings", R.string.nav_settings, Icons.Filled.Settings),
     // Experimental and intentionally absent from More: reachable only through Settings > Advanced.
     SelfHostedPush("self_hosted_push", R.string.nav_self_hosted_push, Icons.Filled.CloudSync),
+    // Experimental and intentionally absent from More: reachable only through Settings > Advanced.
+    JournalSync("journal_sync", R.string.nav_journal_sync, Icons.Filled.CloudSync),
     // Nested Settings destination shared by the Settings row and a blank WHOOP 4.0 Steps tile (#1515).
     // Deliberately absent from [drawerGroups]: it is contextual, not another top-level More item.
     StepsCalibration(
@@ -774,6 +777,7 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
                         onOpenTestCentre = { nav.navigate(Destination.TestCentre.route) },
                         onOpenBackupSync = { nav.navigate(Destination.BackupSync.route) },
                         onOpenSelfHostedPush = { nav.navigate(Destination.SelfHostedPush.route) },
+                        onOpenJournalSync = { nav.navigate(Destination.JournalSync.route) },
                         onOpenStepsCalibration = { nav.navigate(Destination.StepsCalibration.route) },
                     )
                 }
@@ -791,6 +795,7 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
                     )
                 }
                 composable(Destination.SelfHostedPush.route) { SelfHostedPushScreen() }
+                composable(Destination.JournalSync.route) { JournalSyncScreen() }
                 composable(Destination.TestCentre.route) {
                     TestCentreScreen(viewModel, onOpenGroundTruthCollector = {
                         nav.navigate(Destination.GroundTruthCollector.route)
