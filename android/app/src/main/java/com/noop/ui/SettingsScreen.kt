@@ -508,6 +508,7 @@ fun SettingsScreen(
     onOpenTestCentre: () -> Unit = {},
     onOpenBackupSync: () -> Unit = {},
     onOpenSelfHostedPush: () -> Unit = {},
+    onOpenJournalSync: () -> Unit = {},
     onOpenStepsCalibration: () -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -2619,6 +2620,20 @@ fun SettingsScreen(
                 kind = NoopButtonKind.Secondary,
                 fullWidth = true,
                 onClick = onOpenSelfHostedPush,
+            )
+        }
+
+        SettingsCard(
+            icon = Icons.Filled.CloudSync,
+            title = uiString(R.string.nav_journal_sync),
+            blurb = uiString(R.string.journal_sync_settings_row_detail),
+        ) {
+            NoopButton(
+                text = uiString(R.string.nav_journal_sync),
+                leadingIcon = Icons.Filled.CloudSync,
+                kind = NoopButtonKind.Secondary,
+                fullWidth = true,
+                onClick = onOpenJournalSync,
             )
         }
         // --- Experimental · WHOOP 5 / MG --- (hidden when the user is confidently on a 4.0, #22)

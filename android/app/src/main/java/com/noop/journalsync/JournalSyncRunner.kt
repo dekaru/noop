@@ -1,7 +1,6 @@
 package com.noop.journalsync
 
 import com.noop.data.JournalEntry
-import com.noop.ui.JOURNAL_DEVICE_ID
 import com.noop.ui.JournalKind
 import com.noop.ui.STARTER_JOURNAL_QUESTIONS
 import com.noop.ui.STARTER_JOURNAL_GROUPS
@@ -14,7 +13,8 @@ import com.noop.ui.JournalGroup
  * If the upsert throws, no ack is sent and the outcome is [SyncOutcome.Retry] (the server
  * re-delivers on the next run; the Room upsert makes the write idempotent). If the ack
  * itself fails after a good upsert, the outcome is also [SyncOutcome.Retry] for the same
- * reason.
+ * reason. The `after` cursor skips malformed rows; a correction delivered mid-run lands in
+ * the next run.
  */
 interface JournalStore {
     /** Single-commit write of a batch (Room @Upsert under the hood = idempotent). */
@@ -37,7 +37,6 @@ class JournalSyncRunner(
     companion object {
         /** Hard stop so a server that keeps returning the same rows can never loop forever. */
         const val MAX_PAGES = 20
-        const val JOURNAL_SYNC_DEVICE_ID = JOURNAL_DEVICE_ID
 
         /** Starters, kind yes_no by default, with their native groups. */
         fun defaultCatalog(): List<JournalSyncProtocol.CatalogQuestion> =
