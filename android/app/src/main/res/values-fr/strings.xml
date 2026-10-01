@@ -2864,7 +2864,7 @@
     <string name="journal_sync_save">Enregistrer la configuration</string>
     <string name="journal_sync_saved">Configuration enregistrée.</string>
     <string name="journal_sync_invalid_url">Saisissez une URL valide.</string>
-    <string name="journal_sync_config_required">Définissez d'abord l'URL et le jeton.</string>
+    <string name="journal_sync_config_required">Définissez d\'abord l\'URL et le jeton.</string>
     <string name="journal_sync_paste">Coller la configuration</string>
     <string name="journal_sync_paste_invalid">Le presse-papiers ne contient pas de configuration valide.</string>
     <string name="journal_sync_paste_ok">Configuration collée et enregistrée.</string>
