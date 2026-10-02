@@ -140,7 +140,7 @@ class MainActivity : ComponentActivity() {
 
             // Journal Sync: queue a sync on launch when enabled (same deferred, non-blocking pattern).
             if (JournalSyncSettings.from(applicationContext).snapshot().enabled) {
-                runCatching { JournalSyncScheduler.syncNow(applicationContext) }
+                runCatching { JournalSyncScheduler.syncNow(applicationContext, notifyPending = true) }
             }
         }
 

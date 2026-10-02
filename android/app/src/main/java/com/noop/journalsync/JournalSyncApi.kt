@@ -22,6 +22,7 @@ import okhttp3.Response
 interface JournalSyncApi {
     suspend fun postCatalog(questions: List<JournalSyncProtocol.CatalogQuestion>): ApiResult<Unit>
     suspend fun getAnswers(after: Long?): ApiResult<JournalSyncProtocol.Page>
+    suspend fun getPending(): ApiResult<JournalSyncProtocol.PendingPage>
     suspend fun postAck(ids: List<Long>): ApiResult<Unit>
 }
 
@@ -88,6 +89,24 @@ class OkHttpJournalSyncApi(
         if (response.isSuccessful) {
             if (body == null) return ApiResult.Fatal(code, "empty 2xx body")
             return when (val parsed = JournalSyncProtocol.parseAnswersPage(body)) {
+                is JournalSyncProtocol.ParseResult.Ok -> ApiResult.Ok(parsed.page)
+                is JournalSyncProtocol.ParseResult.Malformed -> ApiResult.Fatal(code, parsed.reason)
+            }
+        }
+        return mapFailure(code)
+    }
+
+    override suspend fun getPending(): ApiResult<JournalSyncProtocol.PendingPage> {
+        val response = try {
+            execute(method = "GET", path = "/v1/pending", body = null)
+        } catch (error: IOException) {
+            return apiResultFromIo(error)
+        }
+        val code = response.code
+        val body = runCatching { response.body?.string() }.getOrNull()
+        if (response.isSuccessful) {
+            if (body == null) return ApiResult.Fatal(code, "empty 2xx body")
+            return when (val parsed = JournalSyncProtocol.parsePendingPage(body)) {
                 is JournalSyncProtocol.ParseResult.Ok -> ApiResult.Ok(parsed.page)
                 is JournalSyncProtocol.ParseResult.Malformed -> ApiResult.Fatal(code, parsed.reason)
             }

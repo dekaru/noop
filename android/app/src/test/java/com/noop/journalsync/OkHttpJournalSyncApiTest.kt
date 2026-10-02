@@ -115,8 +115,58 @@ class OkHttpJournalSyncApiTest {
             .addInterceptor(Interceptor { throw IOException("offline") })
             .build()
         val api = OkHttpJournalSyncApi(client, "https://journal.example.com", "tok", null, null)
-        val result = runBlockingTestDirect { api.getAnswers(null) }
+        val result = runBlockingTestDirect { api.getPending() }
         assertTrue(result is ApiResult.RetryableFailure)
+    }
+
+    // ---- ZJS-F4: GET /v1/pending ----
+
+    @Test
+    fun getPendingParsesPageOn200() {
+        val body = """{"asks":[{"ask_id":1,"day":"2026-10-02","question":"Did you sleep well?",
+            "status":"asked","asked_at":"2026-10-02T08:00:00Z",
+            "expires_at":"2026-10-02T20:00:00Z","kind":"yes_no"}]}"""
+        val result = runBlockingTest { api(200, body).getPending() }
+        assertTrue(result is ApiResult.Ok<*>)
+        val asks = (result as ApiResult.Ok<JournalSyncProtocol.PendingPage>).page!!.asks
+        assertEquals(1, asks.size)
+        assertEquals(1L, asks[0].askId)
+        assertEquals("yes_no", asks[0].kind)
+    }
+
+    @Test
+    fun getPendingCodeMapping() {
+        assertTrue(runBlockingTest { api(200).getPending() } is ApiResult.Ok<*>)
+        assertTrue(runBlockingTest { api(302).getPending() } is ApiResult.AuthFailed)
+        assertTrue(runBlockingTest { api(500).getPending() } is ApiResult.RetryableFailure)
+        assertTrue(runBlockingTest { api(400).getPending() } is ApiResult.Fatal)
+    }
+
+    @Test
+    fun getPendingMalformedBodyOn200IsFatal() {
+        val result = runBlockingTest { api(200, """{"asks": "nope"}""").getPending() }
+        assertTrue(result is ApiResult.Fatal)
+    }
+
+    @Test
+    fun getPendingHitsPendingPathWithAuthHeaders() {
+        var seen: Request? = null
+        val client = OkHttpClient.Builder()
+            .followRedirects(false)
+            .addInterceptor(Interceptor { chain ->
+                seen = chain.request()
+                okhttp3.Response.Builder()
+                    .request(chain.request())
+                    .protocol(okhttp3.Protocol.HTTP_1_1)
+                    .code(200).message("stub")
+                    .body(okhttp3.ResponseBody.create(null, """{"asks":[]}"""))
+                    .build()
+            })
+            .build()
+        val api = OkHttpJournalSyncApi(client, "https://journal.example.com", "tok", null, null)
+        runBlockingTest { api.getPending() }
+        assertEquals("https://journal.example.com/v1/pending", seen!!.url.toString())
+        assertEquals("Bearer tok", seen!!.header("Authorization"))
     }
 
     private fun runBlockingTest(block: suspend () -> ApiResult<*>): ApiResult<*> =

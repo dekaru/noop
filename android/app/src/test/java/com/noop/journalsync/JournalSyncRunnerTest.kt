@@ -26,6 +26,16 @@ class FakeApi : JournalSyncApi {
         if (answerResults.isEmpty()) ApiResult.Ok(JournalSyncProtocol.Page(emptyList(), 0, null))
         else answerResults.removeFirst()
 
+    var pendingResult: ApiResult<JournalSyncProtocol.PendingPage> = ApiResult.Ok(
+        JournalSyncProtocol.PendingPage(emptyList()),
+    )
+    var pendingCalls = 0
+
+    override suspend fun getPending(): ApiResult<JournalSyncProtocol.PendingPage> {
+        pendingCalls++
+        return pendingResult
+    }
+
     override suspend fun postAck(ids: List<Long>): ApiResult<Unit> {
         ackCalls.add(ids)
         return ApiResult.Ok(null)

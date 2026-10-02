@@ -2877,6 +2877,9 @@
     <string name="journal_sync_state_idle">Apagado</string>
     <string name="journal_sync_state_syncing">Sincronizando</string>
     <string name="journal_sync_state_ok">Al día</string>
+    <string name="journal_sync_pending_title">Journal</string>
+    <string name="journal_sync_pending_notif">%1$d pregunta(s) esperan tu respuesta</string>
+    <string name="journal_sync_channel_description">Aviso discreto cuando el journal del día tiene preguntas sin responder</string>
     <string name="journal_sync_state_auth_failed">Token inválido</string>
     <string name="journal_sync_state_error">Pausado tras un error</string>
     <string name="journal_sync_current_state">Estado actual: %1$s</string>

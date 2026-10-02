@@ -123,6 +123,51 @@ object JournalSyncProtocol {
         return month in 1..12 && day in 1..31
     }
 
+    /** One pending (unanswered) ask as delivered by `GET /v1/pending`. */
+    data class PendingAsk(
+        val askId: Long,
+        val day: String,
+        val question: String,
+        val kind: String?,
+    )
+
+    /** Parsed `GET /v1/pending` body. */
+    data class PendingPage(val asks: List<PendingAsk>)
+
+    /**
+     * Tolerant parser for `GET /v1/pending` -> {"asks":[{ask_id,day,question,status,asked_at,
+     * expires_at,kind}]}. A malformed record only discards itself; whole-shape problems
+     * (non-JSON, missing "asks") are Malformed, mirroring [parseAnswersPage].
+     */
+    fun parsePendingPage(body: String): ParseResult {
+        val root = runCatching { JSONObject(body) }.getOrNull()
+            ?: return ParseResult.Malformed("response is not a JSON object")
+        val array = root.optJSONArray("asks")
+            ?: return ParseResult.Malformed("missing asks[]")
+        val out = ArrayList<PendingAsk>()
+        for (i in 0 until array.length()) {
+            val record = array.optJSONObject(i)?.let { parsePendingAsk(it) }
+            if (record != null) out.add(record)
+        }
+        return ParseResult.Ok(PendingPage(out))
+    }
+
+    /** One pending ask; null = discard (bad id/day/question). Extra fields are ignored. */
+    fun parsePendingAsk(record: JSONObject): PendingAsk? {
+        val askId = record.optLong("ask_id", -1L)
+        if (askId <= 0) return null
+        val day = record.optString("day", "")
+        if (!isIsoDay(day)) return null
+        val question = record.optString("question", "")
+        if (question.isBlank()) return null
+        val kind = if (record.isNull("kind")) null else
+            when (val raw = record.opt("kind")) {
+                is String -> raw
+                else -> null
+            }
+        return PendingAsk(askId, day, question, kind)
+    }
+
     /** Catalog payload for `POST /v1/catalog`: {"questions":[{question,kind,unit?,group?}]}. */
     fun encodeCatalog(questions: List<CatalogQuestion>): String {
         val array = JSONArray()

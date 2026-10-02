@@ -2906,6 +2906,9 @@
     <string name="journal_sync_state_idle">Off</string>
     <string name="journal_sync_state_syncing">Syncing</string>
     <string name="journal_sync_state_ok">Up to date</string>
+    <string name="journal_sync_pending_title">Journal</string>
+    <string name="journal_sync_pending_notif">%1$d question(s) wait for your answer</string>
+    <string name="journal_sync_channel_description">Discreet notice when the daily journal has unanswered questions</string>
     <string name="journal_sync_state_auth_failed">Token invalid</string>
     <string name="journal_sync_state_error">Paused after an error</string>
     <string name="journal_sync_current_state">Current state: %1$s</string>

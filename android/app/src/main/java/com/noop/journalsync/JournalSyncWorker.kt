@@ -10,6 +10,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.workDataOf
 import androidx.work.WorkerParameters
 import com.noop.data.JournalEntry
 import com.noop.data.WhoopDatabase
@@ -29,6 +30,9 @@ class JournalSyncWorker(
         const val UNIQUE_PERIODIC = "journal-sync-periodic"
         const val UNIQUE_NOW = "journal-sync-now"
         const val PERIOD_HOURS = 6L
+
+        /** ZJS-F4: input-data key; only the launch sync sets it true (never the 6h worker). */
+        const val KEY_NOTIFY_PENDING = "notifyPending"
 
         /** Own attempt cap (same idea as PUSH_MAX_ATTEMPTS, independent constant). */
         const val JOURNAL_SYNC_MAX_ATTEMPTS = 16
@@ -77,6 +81,20 @@ class JournalSyncWorker(
         return when (outcome) {
             is SyncOutcome.Success -> {
                 settings.recordSuccess()
+                // ZJS-F4: only the launch-triggered sync may notify about pending asks.
+                if (inputData.getBoolean(KEY_NOTIFY_PENDING, false)) {
+                    runCatching { api.getPending() }.onSuccess { result ->
+                        if (result is ApiResult.Ok) {
+                            val page = result.page
+                            if (JournalPendingNotifier.shouldNotify(page)) {
+                                JournalPendingNotifier.notifyPending(
+                                    applicationContext,
+                                    page!!.asks.size,
+                                )
+                            }
+                        }
+                    }
+                }
                 Result.success()
             }
             is SyncOutcome.AuthFailed -> {
@@ -122,10 +140,11 @@ object JournalSyncScheduler {
         manager.cancelUniqueWork(JournalSyncWorker.UNIQUE_NOW)
     }
 
-    fun syncNow(context: Context) {
+    fun syncNow(context: Context, notifyPending: Boolean = false) {
         val request = OneTimeWorkRequestBuilder<JournalSyncWorker>()
             .setConstraints(NETWORK)
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30L, TimeUnit.SECONDS)
+            .setInputData(workDataOf(JournalSyncWorker.KEY_NOTIFY_PENDING to notifyPending))
             .build()
         WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
             JournalSyncWorker.UNIQUE_NOW,

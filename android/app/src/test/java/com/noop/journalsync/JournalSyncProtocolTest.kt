@@ -145,4 +145,60 @@ class JournalSyncProtocolTest {
             .put("day", "2026-10-01")
             .put("question", "Did you take magnesium?")
             .put("answered_yes", 1)
+
+    // ---- ZJS-F4: GET /v1/pending tolerant parser ----
+
+    @Test
+    fun parsePendingKeepsGoodAndDiscardsMalformed() {
+        val array = JSONArray()
+        array.put(pendingJson(1))
+        array.put(JSONObject().put("ask_id", 2)) // missing day/question
+        array.put(pendingJson(3).put("day", "not-a-day"))
+        array.put(JSONObject().put("day", "2026-10-02").put("question", "Q")) // missing id
+        array.put(pendingJson(5).put("kind", 42)) // bad kind type -> kind null, record kept
+        val body = JSONObject().put("asks", array).toString()
+
+        val result = JournalSyncProtocol.parsePendingPage(body)
+
+        assertTrue(result is JournalSyncProtocol.ParseResult.Ok)
+        val page = (result as JournalSyncProtocol.ParseResult.Ok).page
+        assertEquals(listOf(1L, 5L), page.asks.map { it.askId })
+        assertNull(page.asks[1].kind)
+        assertEquals("2026-10-01", page.asks[0].day)
+        assertEquals("yes_no", page.asks[0].kind)
+    }
+
+    @Test
+    fun parsePendingWholeShapeFailureIsMalformed() {
+        assertTrue(JournalSyncProtocol.parsePendingPage("not json")
+            is JournalSyncProtocol.ParseResult.Malformed)
+        assertTrue(JournalSyncProtocol.parsePendingPage(JSONObject().put("other", 1).toString())
+            is JournalSyncProtocol.ParseResult.Malformed)
+        // Empty asks[] is fine (no pending).
+        val empty = JournalSyncProtocol.parsePendingPage(
+            JSONObject().put("asks", JSONArray()).toString(),
+        ) as JournalSyncProtocol.ParseResult.Ok
+        assertTrue(empty.page.asks.isEmpty())
+    }
+
+    @Test
+    fun parsePendingIgnoresExtraFields() {
+        val record = pendingJson(9)
+            .put("status", "asked")
+            .put("asked_at", "2026-10-02T08:00:00Z")
+            .put("expires_at", "2026-10-02T20:00:00Z")
+        val page = (JournalSyncProtocol.parsePendingPage(
+            JSONObject().put("asks", JSONArray().put(record)).toString(),
+        ) as JournalSyncProtocol.ParseResult.Ok).page
+        assertEquals(1, page.asks.size)
+        assertEquals(9L, page.asks[0].askId)
+        assertEquals("numeric", page.asks[0].kind)
+    }
+
+    private fun pendingJson(askId: Long): JSONObject =
+        JSONObject()
+            .put("ask_id", askId)
+            .put("day", "2026-10-01")
+            .put("question", "Did you sleep well?")
+            .put("kind", if (askId == 5L) "yes_no" else "numeric")
 }
