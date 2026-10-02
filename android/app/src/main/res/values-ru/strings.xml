@@ -2779,4 +2779,5 @@
     <string name="journal_sync_last_error">Последняя ошибка: %1$s</string>
     <string name="journal_sync_never">Никогда</string>
     <string name="journal_sync_settings_row_detail">Экспериментальная загрузка journal с вашего собственного сервера.</string>
+    <string name="nav_journal_sync">Синхронизация journal</string>
 </resources>

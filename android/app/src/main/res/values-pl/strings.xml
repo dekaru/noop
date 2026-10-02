@@ -2900,4 +2900,5 @@
     <string name="journal_sync_last_error">Ostatni błąd: %1$s</string>
     <string name="journal_sync_never">Nigdy</string>
     <string name="journal_sync_settings_row_detail">Eksperymentalne pobieranie journala z Twojego własnego serwera.</string>
+    <string name="nav_journal_sync">Synchronizacja journala</string>
 </resources>

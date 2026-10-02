@@ -2913,4 +2913,5 @@
     <string name="journal_sync_last_error">Last error: %1$s</string>
     <string name="journal_sync_never">Never</string>
     <string name="journal_sync_settings_row_detail">Experimental journal download from your own server.</string>
+    <string name="nav_journal_sync">Journal sync</string>
 </resources>

@@ -2884,4 +2884,5 @@
     <string name="journal_sync_last_error">Último error: %1$s</string>
     <string name="journal_sync_never">Nunca</string>
     <string name="journal_sync_settings_row_detail">Descarga experimental de journal desde tu propio servidor.</string>
+    <string name="nav_journal_sync">Sincronización de journal</string>
 </resources>
