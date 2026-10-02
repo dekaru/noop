@@ -171,9 +171,9 @@ class JournalSyncProtocolTest {
     @Test
     fun parsePendingWholeShapeFailureIsMalformed() {
         assertTrue(JournalSyncProtocol.parsePendingPage("not json")
-            is JournalSyncProtocol.ParseResult.Malformed)
+            is JournalSyncProtocol.PendingParseResult.Malformed)
         assertTrue(JournalSyncProtocol.parsePendingPage(JSONObject().put("other", 1).toString())
-            is JournalSyncProtocol.ParseResult.Malformed)
+            is JournalSyncProtocol.PendingParseResult.Malformed)
         // Empty asks[] is fine (no pending).
         val empty = JournalSyncProtocol.parsePendingPage(
             JSONObject().put("asks", JSONArray()).toString(),
