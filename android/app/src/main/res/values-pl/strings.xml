@@ -2893,6 +2893,9 @@
     <string name="journal_sync_state_idle">Wyłączone</string>
     <string name="journal_sync_state_syncing">Synchronizacja</string>
     <string name="journal_sync_state_ok">Aktualne</string>
+    <string name="journal_sync_pending_title">Journal</string>
+    <string name="journal_sync_pending_notif">%1$d pytan(i) czeka na twoją odpowiedź</string>
+    <string name="journal_sync_channel_description">Dyskretne powiadomienie, gdy dziennik dnia ma pytania bez odpowiedzi</string>
     <string name="journal_sync_state_auth_failed">Token nieprawidłowy</string>
     <string name="journal_sync_state_error">Wstrzymane po błędzie</string>
     <string name="journal_sync_current_state">Stan obecny: %1$s</string>

@@ -2869,6 +2869,9 @@
     <string name="journal_sync_state_idle">Desligado</string>
     <string name="journal_sync_state_syncing">A sincronizar</string>
     <string name="journal_sync_state_ok">Atualizado</string>
+    <string name="journal_sync_pending_title">Journal</string>
+    <string name="journal_sync_pending_notif">%1$d pergunta(s) esperam a tua resposta</string>
+    <string name="journal_sync_channel_description">Aviso discreto quando o journal do dia tem perguntas sem resposta</string>
     <string name="journal_sync_state_auth_failed">Token inválido</string>
     <string name="journal_sync_state_error">Pausado após um erro</string>
     <string name="journal_sync_current_state">Estado atual: %1$s</string>

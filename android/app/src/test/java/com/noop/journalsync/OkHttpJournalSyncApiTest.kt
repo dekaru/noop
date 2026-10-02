@@ -136,7 +136,7 @@ class OkHttpJournalSyncApiTest {
 
     @Test
     fun getPendingCodeMapping() {
-        assertTrue(runBlockingTest { api(200).getPending() } is ApiResult.Ok<*>)
+        assertTrue(runBlockingTest { api(200, """{"asks":[]}""").getPending() } is ApiResult.Ok<*>)
         assertTrue(runBlockingTest { api(302).getPending() } is ApiResult.AuthFailed)
         assertTrue(runBlockingTest { api(500).getPending() } is ApiResult.RetryableFailure)
         assertTrue(runBlockingTest { api(400).getPending() } is ApiResult.Fatal)

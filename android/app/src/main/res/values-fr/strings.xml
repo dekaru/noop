@@ -2876,6 +2876,10 @@
     <string name="journal_sync_state_idle">Désactivé</string>
     <string name="journal_sync_state_syncing">Synchronisation</string>
     <string name="journal_sync_state_ok">À jour</string>
+
+    <string name="journal_sync_pending_title">Journal</string>
+    <string name="journal_sync_pending_notif">%1$d question(s) attendent votre réponse</string>
+    <string name="journal_sync_channel_description">Avis discret quand le journal du jour a des questions sans réponse</string>
     <string name="journal_sync_state_auth_failed">Jeton invalide</string>
     <string name="journal_sync_state_error">En pause après une erreur</string>
     <string name="journal_sync_current_state">État actuel : %1$s</string>

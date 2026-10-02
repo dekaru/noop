@@ -2772,6 +2772,9 @@
     <string name="journal_sync_state_idle">Выключено</string>
     <string name="journal_sync_state_syncing">Синхронизация</string>
     <string name="journal_sync_state_ok">Актуально</string>
+    <string name="journal_sync_pending_title">Journal</string>
+    <string name="journal_sync_pending_notif">Вопросов ждут ответа: %1$d</string>
+    <string name="journal_sync_channel_description">Ненавязчивое уведомление, когда в дневнике есть вопросы без ответа</string>
     <string name="journal_sync_state_auth_failed">Токен недействителен</string>
     <string name="journal_sync_state_error">Приостановлено после ошибки</string>
     <string name="journal_sync_current_state">Текущий статус: %1$s</string>

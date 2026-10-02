@@ -2847,6 +2847,9 @@
     <string name="journal_sync_state_idle">已关闭</string>
     <string name="journal_sync_state_syncing">正在同步</string>
     <string name="journal_sync_state_ok">已是最新</string>
+    <string name="journal_sync_pending_title">Journal</string>
+    <string name="journal_sync_pending_notif">有 %1$d 个问题等待回答</string>
+    <string name="journal_sync_channel_description">当日志中有未回答的问题时发出的低调提醒</string>
     <string name="journal_sync_state_auth_failed">令牌无效</string>
     <string name="journal_sync_state_error">出错后已暂停</string>
     <string name="journal_sync_current_state">当前状态：%1$s</string>

@@ -2890,6 +2890,10 @@
     <string name="journal_sync_state_idle">Aus</string>
     <string name="journal_sync_state_syncing">Synchronisiert</string>
     <string name="journal_sync_state_ok">Auf dem neuesten Stand</string>
+
+    <string name="journal_sync_pending_title">Journal</string>
+    <string name="journal_sync_pending_notif">%1$d Frage(n) warten auf deine Antwort</string>
+    <string name="journal_sync_channel_description">Diskreter Hinweis, wenn das Tagesjournal unbeantwortete Fragen hat</string>
     <string name="journal_sync_state_auth_failed">Token ungültig</string>
     <string name="journal_sync_state_error">Nach einem Fehler pausiert</string>
     <string name="journal_sync_current_state">Aktueller Status: %1$s</string>

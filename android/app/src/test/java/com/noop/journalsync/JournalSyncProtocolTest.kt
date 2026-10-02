@@ -165,7 +165,7 @@ class JournalSyncProtocolTest {
         assertEquals(listOf(1L, 5L), page.asks.map { it.askId })
         assertNull(page.asks[1].kind)
         assertEquals("2026-10-01", page.asks[0].day)
-        assertEquals("yes_no", page.asks[0].kind)
+        assertEquals("numeric", page.asks[0].kind)
     }
 
     @Test
