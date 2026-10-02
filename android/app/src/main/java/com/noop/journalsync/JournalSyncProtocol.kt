@@ -33,9 +33,9 @@ object JournalSyncProtocol {
         val next: Long?,
     )
 
-    sealed interface ParseResult {
-        data class Ok(val page: Page) : ParseResult
-        data class Malformed(val reason: String) : ParseResult
+    sealed interface ParseResult<out T> {
+        data class Ok<T>(val page: T) : ParseResult<T>
+        data class Malformed(val reason: String) : ParseResult<Nothing>
     }
 
     /**
