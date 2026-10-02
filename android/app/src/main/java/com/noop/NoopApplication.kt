@@ -59,6 +59,13 @@ class NoopApplication : Application() {
         // case it exists for is a strap that stopped talking. Scheduled here rather than beside a widget
         // so it does not inherit that widget's lifecycle. KEEP, so this is a no-op once scheduled.
         com.noop.notif.StaleBatteryWorker.ensureScheduled(this)
+        // Journal sync (Zhoop journal-sync): sync on every app open when enabled, so answers land
+        // in the Journal without waiting for the 6-hour worker or a manual "Sync now". KEEP-style
+        // guard inside: no-op unless the user enabled and configured Journal Sync. Cost when
+        // disabled: one SharedPreferences read.
+        if (com.noop.journalsync.JournalSyncSettings.from(this).snapshot().enabled) {
+            com.noop.journalsync.JournalSyncScheduler.syncNow(this)
+        }
     }
 
     /** Process-wide Room-backed store. One instance shared by the UI and the background service. */
