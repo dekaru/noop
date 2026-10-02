@@ -36,7 +36,8 @@ class MoreNavigationContractTest {
 
         assertTrue(
             "More destinations must be pushed so Back returns to More",
-            source.contains("MoreScreen(onNavigate = { nav.navigate(it) })"),
+            // ZJS-S1 added the onOpenSearch parameter; the push callback itself is unchanged.
+            Regex("MoreScreen\\(\\s*onNavigate = \\{ nav\\.navigate\\(it\\) \\},").containsMatchIn(source),
         )
         assertFalse(
             "More destinations must not clear the stack through navigateTopLevel",

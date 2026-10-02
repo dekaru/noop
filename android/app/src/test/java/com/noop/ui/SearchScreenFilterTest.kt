@@ -71,7 +71,8 @@ class SearchScreenFilterTest {
     fun indexCoversEveryDestinationExactlyOnce() {
         val titles = Destination.entries.associateWith { it.name }
         val idx = buildSearchIndex(titles, emptyMap())
-        assertEquals(Destination.entries.toList(), idx.map { it.dest })
+        // Index order is drawer-group order first, groupless leftovers last — same set as the enum.
+        assertEquals(Destination.entries.toSet(), idx.map { it.dest }.toSet())
     }
 
     @Test
