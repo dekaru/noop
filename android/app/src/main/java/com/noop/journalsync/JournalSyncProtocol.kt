@@ -33,9 +33,9 @@ object JournalSyncProtocol {
         val next: Long?,
     )
 
-    sealed interface ParseResult<out T> {
-        data class Ok<T>(val page: T) : ParseResult<T>
-        data class Malformed(val reason: String) : ParseResult<Nothing>
+    sealed interface ParseResult {
+        data class Ok(val page: Page) : ParseResult
+        data class Malformed(val reason: String) : ParseResult
     }
 
     /**
@@ -139,17 +139,22 @@ object JournalSyncProtocol {
      * expires_at,kind}]}. A malformed record only discards itself; whole-shape problems
      * (non-JSON, missing "asks") are Malformed, mirroring [parseAnswersPage].
      */
-    fun parsePendingPage(body: String): ParseResult {
+    sealed interface PendingParseResult {
+        data class Ok(val page: PendingPage) : PendingParseResult
+        data class Malformed(val reason: String) : PendingParseResult
+    }
+
+    fun parsePendingPage(body: String): PendingParseResult {
         val root = runCatching { JSONObject(body) }.getOrNull()
-            ?: return ParseResult.Malformed("response is not a JSON object")
+            ?: return PendingParseResult.Malformed("response is not a JSON object")
         val array = root.optJSONArray("asks")
-            ?: return ParseResult.Malformed("missing asks[]")
+            ?: return PendingParseResult.Malformed("missing asks[]")
         val out = ArrayList<PendingAsk>()
         for (i in 0 until array.length()) {
             val record = array.optJSONObject(i)?.let { parsePendingAsk(it) }
             if (record != null) out.add(record)
         }
-        return ParseResult.Ok(PendingPage(out))
+        return PendingParseResult.Ok(PendingPage(out))
     }
 
     /** One pending ask; null = discard (bad id/day/question). Extra fields are ignored. */

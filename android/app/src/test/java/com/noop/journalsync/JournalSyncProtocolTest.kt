@@ -160,8 +160,8 @@ class JournalSyncProtocolTest {
 
         val result = JournalSyncProtocol.parsePendingPage(body)
 
-        assertTrue(result is JournalSyncProtocol.ParseResult.Ok)
-        val page = (result as JournalSyncProtocol.ParseResult.Ok).page
+        assertTrue(result is JournalSyncProtocol.PendingParseResult.Ok)
+        val page = (result as JournalSyncProtocol.PendingParseResult.Ok).page
         assertEquals(listOf(1L, 5L), page.asks.map { it.askId })
         assertNull(page.asks[1].kind)
         assertEquals("2026-10-01", page.asks[0].day)
@@ -177,7 +177,7 @@ class JournalSyncProtocolTest {
         // Empty asks[] is fine (no pending).
         val empty = JournalSyncProtocol.parsePendingPage(
             JSONObject().put("asks", JSONArray()).toString(),
-        ) as JournalSyncProtocol.ParseResult.Ok
+        ) as JournalSyncProtocol.PendingParseResult.Ok
         assertTrue(empty.page.asks.isEmpty())
     }
 
@@ -189,7 +189,7 @@ class JournalSyncProtocolTest {
             .put("expires_at", "2026-10-02T20:00:00Z")
         val page = (JournalSyncProtocol.parsePendingPage(
             JSONObject().put("asks", JSONArray().put(record)).toString(),
-        ) as JournalSyncProtocol.ParseResult.Ok).page
+        ) as JournalSyncProtocol.PendingParseResult.Ok).page
         assertEquals(1, page.asks.size)
         assertEquals(9L, page.asks[0].askId)
         assertEquals("numeric", page.asks[0].kind)

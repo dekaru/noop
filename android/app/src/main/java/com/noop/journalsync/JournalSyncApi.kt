@@ -107,8 +107,8 @@ class OkHttpJournalSyncApi(
         if (response.isSuccessful) {
             if (body == null) return ApiResult.Fatal(code, "empty 2xx body")
             return when (val parsed = JournalSyncProtocol.parsePendingPage(body)) {
-                is JournalSyncProtocol.ParseResult.Ok -> ApiResult.Ok(parsed.page)
-                is JournalSyncProtocol.ParseResult.Malformed -> ApiResult.Fatal(code, parsed.reason)
+                is JournalSyncProtocol.PendingParseResult.Ok -> ApiResult.Ok(parsed.page)
+                is JournalSyncProtocol.PendingParseResult.Malformed -> ApiResult.Fatal(code, parsed.reason)
             }
         }
         return mapFailure(code)
