@@ -1611,6 +1611,9 @@
     <string name="nav_support">Soporte</string>
     <string name="nav_settings">Ajustes</string>
     <string name="nav_test_centre">Centro de pruebas</string>
+    <string name="nav_search">Buscar</string>
+    <string name="search_hint">Buscar secciones...</string>
+    <string name="search_no_results">Ninguna sección coincide con \"%1$s\"</string>
     <string name="nav_more">Más</string>
     <string name="more_group_insights">Análisis</string>
     <string name="more_group_body">Cuerpo</string>

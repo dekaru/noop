@@ -52,6 +52,7 @@ import androidx.compose.material.icons.automirrored.filled.Rule
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.BatteryStd
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Timeline
@@ -203,6 +204,9 @@ internal enum class Destination(
     ),
     TestCentre("test_centre", R.string.nav_test_centre, Icons.Filled.BugReport),
     GroundTruthCollector("ground_truth_collector", R.string.ground_truth_title, Icons.Filled.Sensors),
+
+    // ZJS-S1: global section search — reached ONLY from the More page's magnifier, not from any group.
+    Search("search", R.string.nav_search, Icons.Filled.Search),
 
     // The "More" tab: its own navigated page (mirroring the iOS More tab) that hosts the full
     // grouped destination list. It is NOT itself in any [DrawerGroup] — it's the door to them.
@@ -806,7 +810,14 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
                 // full grouped destination list (was a pull-up sheet). A row pushes its destination so
                 // Android Back returns to More instead of skipping straight to Today.
                 composable(Destination.More.route) {
-                    MoreScreen(onNavigate = { nav.navigate(it) })
+                    MoreScreen(
+                        onNavigate = { nav.navigate(it) },
+                        // The magnifier in the More header pushes the global search page (ZJS-S1).
+                        onOpenSearch = { nav.navigate(Destination.Search.route) },
+                    )
+                }
+                composable(Destination.Search.route) {
+                    SearchScreen(onNavigate = { nav.navigate(it) })
                 }
             }
         }
@@ -978,7 +989,7 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
 /** The full grouped destination list as a navigated page (the iOS More tab's twin). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MoreScreen(onNavigate: (String) -> Unit) {
+private fun MoreScreen(onNavigate: (String) -> Unit, onOpenSearch: () -> Unit = {}) {
     // S2 parity: each group's open/closed state, seeded from `defaultExpanded` (Insights + Body open,
     // Data + App collapsed). PERSISTED (#860 item 2): the user's open/closed choice must survive leaving
     // and re-entering the More page (and relaunch), not reset to the seed every visit. Backed by
@@ -1003,6 +1014,23 @@ private fun MoreScreen(onNavigate: (String) -> Unit) {
         topBackground = screenBackdropSlot(showDayCycleBackground, skyBehindCards),
         // Sky-behind-cards fills the viewport so the transparent cards reveal the sky the whole way down.
         fullBleedBackground = screenBackdropFullBleed(showDayCycleBackground, skyBehindCards),
+        // ZJS-S1: the global-search magnifier lives ONLY on the More header's trailing slot.
+        trailing = {
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable(onClick = onOpenSearch)
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    Icons.Filled.Search,
+                    contentDescription = uiString(R.string.nav_search),
+                    tint = Palette.textSecondary,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        },
     ) {
         // Mirror the iOS More page: each group is a tappable UPPERCASE overline header (with a disclosure
         // chevron) over a single grouped white NoopCard whose rows are tight (accent icon + title +

@@ -1629,6 +1629,9 @@
     <string name="nav_support">Assistance</string>
     <string name="nav_settings">Paramètres</string>
     <string name="nav_test_centre">Centre de test</string>
+    <string name="nav_search">Rechercher</string>
+    <string name="search_hint">Rechercher des sections...</string>
+    <string name="search_no_results">Aucune section ne correspond à \"%1$s\"</string>
     <string name="nav_more">Plus</string>
     <string name="more_group_insights">Perspectives</string>
     <string name="more_group_body">Corps</string>
