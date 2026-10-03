@@ -59,6 +59,7 @@ val STARTER_JOURNAL_QUESTIONS: List<String> = listOf(
     "Did you feel sick or ill?",
     "Did you take magnesium?",
     "Did you read before bed?",
+    "Did you engage in sexual activity?",
 )
 
 /** Dedup/identity key for a question. Normalises ALL whitespace, leading/trailing AND internal
