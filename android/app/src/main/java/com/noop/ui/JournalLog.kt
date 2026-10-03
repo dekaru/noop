@@ -73,6 +73,8 @@ val STARTER_JOURNAL_QUESTIONS: List<String> = listOf(
     "Had a therapy session?",
     "Made progress on an important goal?",
     "Masturbated?",
+    "Did you sleep with an eye mask?",
+    "Did you eat at a restaurant?",
 )
 
 /** Dedup/identity key for a question. Normalises ALL whitespace, leading/trailing AND internal

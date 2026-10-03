@@ -95,6 +95,8 @@ val STARTER_JOURNAL_GROUPS: Map<String, JournalGroup> = mapOf(
     "Had a therapy session?" to JournalGroup.Health,
     "Made progress on an important goal?" to JournalGroup.Behaviour,
     "Masturbated?" to JournalGroup.Lifestyle,
+    "Did you sleep with an eye mask?" to JournalGroup.Lifestyle,
+    "Did you eat at a restaurant?" to JournalGroup.Nutrition,
     "Did you feel sick or ill?" to JournalGroup.Health,
     "Did you feel stressed?" to JournalGroup.Behaviour,
 )
