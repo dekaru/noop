@@ -14,13 +14,15 @@ import org.junit.Test
 class FakeApi : JournalSyncApi {
     val catalogCalls = mutableListOf<List<JournalSyncProtocol.CatalogQuestion>>()
     val ackCalls = mutableListOf<List<Long>>()
-    var catalogResult: ApiResult<Unit> = ApiResult.Ok(null)
+    var catalogResult: ApiResult<JournalSyncProtocol.RemoteCatalog> = ApiResult.Ok(null)
     val answerResults = ArrayDeque<ApiResult<JournalSyncProtocol.Page>>()
 
-    override suspend fun postCatalog(questions: List<JournalSyncProtocol.CatalogQuestion>): ApiResult<Unit> {
+    override suspend fun postCatalog(questions: List<JournalSyncProtocol.CatalogQuestion>): ApiResult<JournalSyncProtocol.RemoteCatalog> {
         catalogCalls.add(questions)
         return catalogResult
     }
+
+    override suspend fun getCatalog(): ApiResult<JournalSyncProtocol.RemoteCatalog> = catalogResult
 
     override suspend fun getAnswers(after: Long?): ApiResult<JournalSyncProtocol.Page> =
         if (answerResults.isEmpty()) ApiResult.Ok(JournalSyncProtocol.Page(emptyList(), 0, null))

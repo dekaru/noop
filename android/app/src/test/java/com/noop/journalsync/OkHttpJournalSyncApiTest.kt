@@ -58,7 +58,7 @@ class OkHttpJournalSyncApiTest {
     @Test
     fun codeMapping() {
         assertTrue(runBlockingTest { api(200).postAck(listOf(1L)) } is ApiResult.Ok<*> )
-        assertTrue(runBlockingTest { api(204).postCatalog(emptyList()) } is ApiResult.Ok<*> )
+        assertTrue(runBlockingTest { api(200, """{"questions":[],"catalog_hash":"abc"}""").postCatalog(emptyList()) } is ApiResult.Ok<*> )
         assertTrue(runBlockingTest { api(401).postAck(listOf(1L)) } is ApiResult.AuthFailed)
         assertTrue(runBlockingTest { api(403).postAck(listOf(1L)) } is ApiResult.AuthFailed)
         assertTrue(runBlockingTest { api(500).postAck(listOf(1L)) } is ApiResult.RetryableFailure)

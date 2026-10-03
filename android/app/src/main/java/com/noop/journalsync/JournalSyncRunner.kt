@@ -22,7 +22,12 @@ interface JournalStore {
 }
 
 sealed class SyncOutcome {
-    data class Success(val synced: Int, val discarded: Int) : SyncOutcome()
+    /** ZJS-F6: [remoteCatalog] is the server's SSOT catalog from the POST round-trip (may be null). */
+    data class Success(
+        val synced: Int,
+        val discarded: Int,
+        val remoteCatalog: JournalSyncProtocol.RemoteCatalog? = null,
+    ) : SyncOutcome()
     data class AuthFailed(val code: Int) : SyncOutcome()
     data class Retry(val message: String) : SyncOutcome()
     data class Fatal(val message: String) : SyncOutcome()
@@ -70,14 +75,16 @@ class JournalSyncRunner(
 
     suspend fun run(): SyncOutcome {
         // (a) catalog refresh: failure is non-fatal, log and continue (spec §3.4 step 1).
+        // ZJS-F6: the POST response carries the server's full SSOT catalog + hash.
         val catalog = runCatching { catalogProvider() }.getOrElse { emptyList() }
+        var remoteCatalog: JournalSyncProtocol.RemoteCatalog? = null
         if (catalog.isNotEmpty()) {
             when (val result = api.postCatalog(catalog)) {
                 is ApiResult.AuthFailed -> return SyncOutcome.AuthFailed(result.code)
                 is ApiResult.RetryableFailure, is ApiResult.Fatal -> {
                     // Catalog refresh failed but answers may still sync; keep going.
                 }
-                is ApiResult.Ok -> Unit
+                is ApiResult.Ok -> remoteCatalog = result.page
             }
         }
 
@@ -97,7 +104,7 @@ class JournalSyncRunner(
                     discarded += page.discarded
                     if (page.answers.isEmpty()) {
                         // Empty page terminates the loop (server delivers pending-ack until empty).
-                        return SyncOutcome.Success(synced, discarded)
+                        return SyncOutcome.Success(synced, discarded, remoteCatalog)
                     }
                     val entries = JournalSyncProtocol.toJournalEntries(page.answers)
                     // Commit FIRST; any exception escapes as Retry with no ack sent.

@@ -81,6 +81,16 @@ class JournalSyncWorker(
         return when (outcome) {
             is SyncOutcome.Success -> {
                 settings.recordSuccess()
+                // ZJS-F6: adopt the server's SSOT catalog (only while sync is enabled; local wins,
+                // customs/hidden never deleted). Skipped when the server hash did not change.
+                val remoteCatalog = outcome.remoteCatalog
+                if (snapshot.enabled && remoteCatalog != null &&
+                    !CatalogAdoption.alreadyApplied(applicationContext, remoteCatalog.hash)
+                ) {
+                    runCatching {
+                        CatalogAdoption.applyRemoteCatalog(applicationContext, remoteCatalog)
+                    }
+                }
                 // ZJS-F4: only the launch-triggered sync may notify about pending asks.
                 if (inputData.getBoolean(KEY_NOTIFY_PENDING, false)) {
                     runCatching { api.getPending() }.onSuccess { result ->

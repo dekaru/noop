@@ -20,7 +20,9 @@ import okhttp3.Response
  * and must surface as [ApiResult.AuthFailed], not as a fetch of an HTML login form.
  */
 interface JournalSyncApi {
-    suspend fun postCatalog(questions: List<JournalSyncProtocol.CatalogQuestion>): ApiResult<Unit>
+    /** ZJS-F6: POST returns the server's full SSOT catalog (same round-trip). */
+    suspend fun postCatalog(questions: List<JournalSyncProtocol.CatalogQuestion>): ApiResult<JournalSyncProtocol.RemoteCatalog>
+    suspend fun getCatalog(): ApiResult<JournalSyncProtocol.RemoteCatalog>
     suspend fun getAnswers(after: Long?): ApiResult<JournalSyncProtocol.Page>
     suspend fun getPending(): ApiResult<JournalSyncProtocol.PendingPage>
     suspend fun postAck(ids: List<Long>): ApiResult<Unit>
@@ -64,7 +66,7 @@ class OkHttpJournalSyncApi(
         baseUrl, token, cfClientId, cfClientSecret,
     )
 
-    override suspend fun postCatalog(questions: List<JournalSyncProtocol.CatalogQuestion>): ApiResult<Unit> {
+    override suspend fun postCatalog(questions: List<JournalSyncProtocol.CatalogQuestion>): ApiResult<JournalSyncProtocol.RemoteCatalog> {
         val response = try {
             execute(
                 method = "POST",
@@ -74,7 +76,30 @@ class OkHttpJournalSyncApi(
         } catch (error: IOException) {
             return apiResultFromIo(error)
         }
-        return mapBareResponse(response)
+        return mapCatalogResponse(response)
+    }
+
+    override suspend fun getCatalog(): ApiResult<JournalSyncProtocol.RemoteCatalog> {
+        val response = try {
+            execute(method = "GET", path = "/v1/catalog", body = null)
+        } catch (error: IOException) {
+            return apiResultFromIo(error)
+        }
+        return mapCatalogResponse(response)
+    }
+
+    /** ZJS-F6: 2xx bodies carry {"questions":[...],"catalog_hash":"..."}; a 204 (legacy) is an empty Ok. */
+    private fun mapCatalogResponse(response: Response): ApiResult<JournalSyncProtocol.RemoteCatalog> {
+        val code = response.code
+        val body = runCatching { response.body?.string() }.getOrNull()
+        if (response.isSuccessful) {
+            if (body.isNullOrBlank()) return ApiResult.Ok(JournalSyncProtocol.RemoteCatalog(emptyList(), null))
+            return when (val parsed = JournalSyncProtocol.parseCatalog(body)) {
+                is JournalSyncProtocol.CatalogParseResult.Ok -> ApiResult.Ok(parsed.catalog)
+                is JournalSyncProtocol.CatalogParseResult.Malformed -> ApiResult.Fatal(code, parsed.reason)
+            }
+        }
+        return mapFailure(code)
     }
 
     override suspend fun getAnswers(after: Long?): ApiResult<JournalSyncProtocol.Page> {

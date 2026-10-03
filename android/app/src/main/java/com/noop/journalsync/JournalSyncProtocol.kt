@@ -200,4 +200,52 @@ object JournalSyncProtocol {
         val unit: String? = null,
         val group: String? = null,
     )
+
+    /** ZJS-F6: the server's full SSOT catalog plus its stable content hash. */
+    data class RemoteCatalog(
+        val questions: List<CatalogQuestion>,
+        val hash: String?,
+    )
+
+    sealed interface CatalogParseResult {
+        data class Ok(val catalog: RemoteCatalog) : CatalogParseResult
+        data class Malformed(val reason: String) : CatalogParseResult
+    }
+
+    /**
+     * Tolerant parser for the catalog payload returned by GET/POST /v1/catalog
+     * (ZJS-F6): {"questions":[{question,kind,unit?,group?}], "catalog_hash":"..."}.
+     * Whole-shape problems (non-JSON, missing/non-array "questions") are Malformed;
+     * a malformed record only discards itself, mirroring [parseAnswersPage].
+     */
+    fun parseCatalog(body: String): CatalogParseResult {
+        val root = runCatching { JSONObject(body) }.getOrNull()
+            ?: return CatalogParseResult.Malformed("response is not a JSON object")
+        val array = root.optJSONArray("questions")
+            ?: return CatalogParseResult.Malformed("missing questions[]")
+        val out = ArrayList<CatalogQuestion>()
+        for (i in 0 until array.length()) {
+            val record = array.optJSONObject(i)?.let { parseCatalogQuestion(it) }
+            if (record != null) out.add(record)
+        }
+        val hash = if (root.isNull("catalog_hash")) null else
+            when (val raw = root.opt("catalog_hash")) {
+                is String -> raw.takeIf { it.isNotBlank() }
+                else -> null
+            }
+        return CatalogParseResult.Ok(RemoteCatalog(out, hash))
+    }
+
+    /** One catalog record; null = discard (blank question / bad kind). */
+    fun parseCatalogQuestion(record: JSONObject): CatalogQuestion? {
+        val question = record.optString("question", "")
+        if (question.isBlank()) return null
+        val kind = record.optString("kind", "")
+        if (kind != "yes_no" && kind != "numeric") return null
+        val unit = if (record.isNull("unit")) null else
+            (record.opt("unit") as? String)
+        val group = if (record.isNull("group")) null else
+            (record.opt("group") as? String)
+        return CatalogQuestion(question, kind, unit, group)
+    }
 }
