@@ -60,6 +60,19 @@ val STARTER_JOURNAL_QUESTIONS: List<String> = listOf(
     "Did you take magnesium?",
     "Did you read before bed?",
     "Did you engage in sexual activity?",
+    "Commuted to work?",
+    "Connected with family and/or friends?",
+    "Consumed added sugar?",
+    "Consumed dairy?",
+    "Consumed fats?",
+    "Consumed meat?",
+    "Consumed protein?",
+    "Experienced bloating?",
+    "Felt Irritable?",
+    "Felt energized throughout the day?",
+    "Had a therapy session?",
+    "Made progress on an important goal?",
+    "Masturbated?",
 )
 
 /** Dedup/identity key for a question. Normalises ALL whitespace, leading/trailing AND internal
