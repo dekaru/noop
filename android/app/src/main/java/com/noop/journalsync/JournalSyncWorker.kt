@@ -138,6 +138,7 @@ object JournalSyncScheduler {
      */
     fun shouldSyncOnForeground(lastAt: Long, now: Long, enabled: Boolean): Boolean {
         if (!enabled) return false
+        if (lastAt <= 0L) return true // never synced before (fresh install / cleared prefs)
         return now - lastAt >= RESUME_SYNC_THROTTLE_MS
     }
     internal val NETWORK = Constraints.Builder()
