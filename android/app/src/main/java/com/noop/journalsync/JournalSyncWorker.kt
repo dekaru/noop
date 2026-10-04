@@ -128,6 +128,18 @@ class JournalSyncWorker(
 
 /** Own scheduler object; MainActivity/settings wiring happens in a later child task. */
 object JournalSyncScheduler {
+    /** ZJS-F8: minimum interval between two foreground (launch/resume) triggered syncs. */
+    const val RESUME_SYNC_THROTTLE_MS: Long = 5L * 60_000L
+
+    /**
+     * ZJS-F8: pure decision for a foreground sync (launch or ON_RESUME).
+     * Launch fires right after create; resume fires right after launch. The throttle on the
+     * shared prefs marker (written by BOTH launch and resume) prevents the double-sync.
+     */
+    fun shouldSyncOnForeground(lastAt: Long, now: Long, enabled: Boolean): Boolean {
+        if (!enabled) return false
+        return now - lastAt >= RESUME_SYNC_THROTTLE_MS
+    }
     internal val NETWORK = Constraints.Builder()
         .setRequiredNetworkType(NetworkType.CONNECTED)
         .build()

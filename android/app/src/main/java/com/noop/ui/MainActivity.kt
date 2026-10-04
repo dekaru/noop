@@ -139,8 +139,15 @@ class MainActivity : ComponentActivity() {
             runCatching { SelfHostedPushScheduler.enqueueLaunchCatchUp(applicationContext) }
 
             // Journal Sync: queue a sync on launch when enabled (same deferred, non-blocking pattern).
-            if (JournalSyncSettings.from(applicationContext).snapshot().enabled) {
-                runCatching { JournalSyncScheduler.syncNow(applicationContext, notifyPending = true) }
+            // ZJS-F8: the launch marks the foreground-sync timestamp so the first ON_RESUME
+            // (which fires right after create) doesn't duplicate this sync.
+            runCatching {
+                val settings = JournalSyncSettings.from(applicationContext)
+                val now = System.currentTimeMillis()
+                if (JournalSyncScheduler.shouldSyncOnForeground(settings.lastResumeSyncAt(), now, settings.snapshot().enabled)) {
+                    settings.markResumeSync(now)
+                    JournalSyncScheduler.syncNow(applicationContext, notifyPending = true)
+                }
             }
         }
 
@@ -1598,6 +1605,18 @@ fun NoopRoot() {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
                 appViewModel.ble.onForeground()
+                // ZJS-F8: sync the journal on return to foreground too (not just cold launch).
+                // notifyPending=false: the discreet notification stays a launch-only behavior.
+                // Throttled via the shared marker (launch writes it too), so the first resume
+                // right after create never duplicates the launch sync.
+                runCatching {
+                    val settings = JournalSyncSettings.from(context)
+                    val now = System.currentTimeMillis()
+                    if (JournalSyncScheduler.shouldSyncOnForeground(settings.lastResumeSyncAt(), now, settings.snapshot().enabled)) {
+                        settings.markResumeSync(now)
+                        JournalSyncScheduler.syncNow(context, notifyPending = false)
+                    }
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

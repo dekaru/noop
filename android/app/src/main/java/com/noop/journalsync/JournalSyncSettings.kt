@@ -49,6 +49,13 @@ class JournalSyncSettings private constructor(
 
     fun endpointText(): String = prefs.getString(KEY_ENDPOINT, "").orEmpty()
 
+    /** ZJS-F8: timestamp of the last sync fired on launch/resume (throttle marker, survives recreation). */
+    fun lastResumeSyncAt(): Long = prefs.getLong(KEY_LAST_RESUME_SYNC, 0L)
+
+    fun markResumeSync(atMillis: Long) {
+        prefs.edit().putLong(KEY_LAST_RESUME_SYNC, atMillis).apply()
+    }
+
     /** Gate used by the worker before touching Keystore or the network. */
     fun enabledEndpoint(): PushEndpointPolicy.ValidEndpoint? {
         if (!prefs.getBoolean(KEY_ENABLED, false)) return null
@@ -127,6 +134,7 @@ class JournalSyncSettings private constructor(
         private const val KEY_LAST_SUCCESS = "last_success_at"
         private const val KEY_LAST_ERROR = "last_error"
         private const val KEY_STATE = "state"
+        private const val KEY_LAST_RESUME_SYNC = "last_resume_sync_at"
         private const val MAX_STATUS_CHARS = 300
         private val statusLock = Any()
 
