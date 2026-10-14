@@ -53,6 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.noop.data.DailyMetric
 import com.noop.data.JournalEntry
 import com.noop.data.WorkoutRow
+import com.noop.journalsync.JournalSyncSettings
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -245,25 +246,35 @@ fun InsightsScreen(vm: AppViewModel, onOpenInsightsHub: () -> Unit = {}) {
             .associate { it.question to it.numericValue!! }
         // Pre-fill from last night when opening today's journal with no entries yet, makes
         // recurring patterns (e.g. no alcohol, read before bed) one tap to confirm instead of re-enter.
-        if (answers.isEmpty() && dayOffset == 0L) {
-            val yesterdayAnswers = native
-                .filter { it.day == journalDayKey(1L) }
-                .associate { it.question to it.answeredYes }
-            if (yesterdayAnswers.isNotEmpty()) {
+        // ZJS-F9: while sync is on, yesterday's answers may be synced ones; they must not be cloned
+        // into today's rows, so the prefill only shows the banner (visual, not persisted).
+        val yesterdayAnswers = native
+            .filter { it.day == journalDayKey(1L) }
+            .associate { it.question to it.answeredYes }
+        val syncEnabled = JournalSyncSettings.from(ctx).snapshot().enabled
+        when (val decision = shouldPrefillFromYesterday(
+            answers = answers,
+            dayOffset = dayOffset,
+            yesterdayAnswers = yesterdayAnswers,
+            syncedQuestions = if (syncEnabled) yesterdayAnswers.keys else emptySet(),
+        )) {
+            PrefillDecision.NoPrefill -> {
+                preFilledFromYesterday = false
+            }
+            is PrefillDecision.PrefillLocal -> {
                 // Upsert real rows for today so the effects engine counts the day as logged
                 // and onClear can delete the row it finds. Without this the chips looked
                 // pre-filled but no row existed, so "confirm" persisted nothing and
                 // "clear" tried to delete a phantom.
-                vm.repo.upsertJournal(yesterdayAnswers.map { (q, yes) ->
+                vm.repo.upsertJournal(decision.persist.map { (q, yes) ->
                     JournalEntry(JOURNAL_DEVICE_ID, key, q, yes)
                 })
-                answers = yesterdayAnswers
+                answers = decision.answers
                 preFilledFromYesterday = true
-            } else {
-                preFilledFromYesterday = false
             }
-        } else {
-            preFilledFromYesterday = false
+            PrefillDecision.BannerOnly -> {
+                preFilledFromYesterday = true
+            }
         }
         dayAnswers = answers
         journalLoaded = true
