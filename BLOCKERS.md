@@ -2,6 +2,19 @@
 
 Implementation is complete, but acceptance is NOT verified.
 
+## SIS-609 attempt (2026-10-17) — reinstall gate not met, still blocked
+
+Ran the SIS-609 correction lane (per lane-spec /tmp/lane-specs/SIS-609.md, instructions of 11-oct). Preconditions failed at the explicit disk gates:
+
+- `df -h /mnt/volume-molty-1`: 1.3 GB free — below the spec's "no empieces" threshold of 2.5 GB for step 0 and even below the 1.5 GB gate for the test run. Root `/` is also tight: 1.7 GB free at 96%.
+- Gradle 9.2.1 dist `/mnt/volume-molty-1/data/gradle/wrapper/dists/gradle-9.2.1-bin/<hash>/gradle-9.2.1/bin/gradle` — ABSENT (`find` across /mnt/volume-molty-1, /opt, /root/.gradle, /root/.cache, /root/infra, /usr/local: nothing). Reinstalling it (`gradle-install.sh`) needs ~360 MB on the volume.
+- Android SDK `/mnt/volume-molty-1/android/sdk` — ABSENT (purged 2026-10-11 per `/root/infra/state/android-sdk-manifest.txt`); reinstall needs ~0.9 GB on the volume, same filesystem.
+- `GRADLE_USER_HOME` = `/mnt/volume-molty-1/data/gradle` (`/root/.gradle` symlinks there); its `caches/` is empty, so a full network download of AGP 8.5.2 + Kotlin (~0.7–1 GB more) would be required — this cannot fit in the remaining space and would fall below the spec's 300 MB abort line during the download.
+
+Per the spec stop conditions, step 0 was NOT started: `android-sdk-install.sh` and `gradle-install.sh` were not executed, `verification-metadata.xml` was not touched (the 4 Kotlin 2.2.20 checksums remain unadded), no `--no-verification` or version override was used, and the ZJS-F9 commit (4972683) is untouched. Nothing was deleted.
+
+Unblock: bring `/mnt/volume-molty-1` above 2.5 GB free, then follow SIS-609 steps 0–6 (`android-sdk-install.sh` + `gradle-install.sh`, network test run, checksum entries, `G --stop`) and delete this file once the `*Journal*` task is green.
+
 ## Build environment
 
 The required cached Gradle 9.2.1 executable could not be found under /mnt/volume-molty-1, /opt, /root/.gradle, /root/.cache, /root/.hermes/cache, /root/infra, /usr/local or /tmp. The installed /usr/bin/gradle reports 4.4.1 outside the Android project. Inside the project it unexpectedly delegates to the unchanged 8.7 wrapper and downloaded that distribution even with --offline. This was not intended; no wrapper files were changed.
