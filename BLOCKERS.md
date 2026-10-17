@@ -15,6 +15,17 @@ Per the spec stop conditions, step 0 was NOT started: `android-sdk-install.sh` a
 
 Unblock: bring `/mnt/volume-molty-1` above 2.5 GB free, then follow SIS-609 steps 0–6 (`android-sdk-install.sh` + `gradle-install.sh`, network test run, checksum entries, `G --stop`) and delete this file once the `*Journal*` task is green.
 
+## SIS-683 re-dispatch re-verification (2026-10-17 ~17:21 CST)
+
+Re-ran the SIS-683 correction lane (lane-spec /tmp/lane-specs/SIS-683.md) against HEAD (4972683 + f9ee9e8). Review round-1 items all verified present in the committed tree:
+
+- JournalPrefill.kt:17 — `data object BannerOnly : PrefillDecision`, no `answers` payload.
+- InsightsScreen.kt:275-277 — the `BannerOnly` branch only sets `preFilledFromYesterday = true`; it does not assign `answers` and does not upsert.
+- `grep -rn prefillVisualOnly android/` → 0 hits: the reviewer's over-broad global clear guard is gone; `onClear` (InsightsScreen.kt:394-399) deletes the real row and bumps `journalSeq` (original behaviour preserved).
+- `git status` clean on `journal-sync-noop`; `git diff --check` clean; both files exist in commit 4972683 with SIS-683 in the commit body.
+
+Acceptance (green `*Journal*` task + compileDebugKotlin) still NOT verified: the SIS-609 disk gates fail again on this attempt — `df -h`: volume 1.1 GB free, root `/` 1.7 GB at 96%; `/mnt/volume-molty-1/data/gradle/wrapper/dists/` contains only `CACHEDIR.TAG` (no gradle-9.2.1-bin); `/mnt/volume-molty-1/android/sdk` absent. Per the SIS-609 stop conditions step 0 was not started; no reinstalls, no verification bypass, no version override, no wrapper changes, nothing deleted. The "Unblock" line above still stands.
+
 ## Build environment
 
 The required cached Gradle 9.2.1 executable could not be found under /mnt/volume-molty-1, /opt, /root/.gradle, /root/.cache, /root/.hermes/cache, /root/infra, /usr/local or /tmp. The installed /usr/bin/gradle reports 4.4.1 outside the Android project. Inside the project it unexpectedly delegates to the unchanged 8.7 wrapper and downloaded that distribution even with --offline. This was not intended; no wrapper files were changed.
