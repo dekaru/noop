@@ -46,3 +46,7 @@ Both failed before project configuration at `/mnt/volume-molty-1/data/gradle/ini
 5. Commit: uses /root/noop on journal-sync-noop, the original spec's explicit repository exception. SIS-683's later signature requirement (Claudio) supersedes the original Juan signature; the original subject is retained with SIS-683 in the commit body. No workspace production files were edited.
 
 The pre-existing uncommitted ZJS-F9 implementation is included with this correction because it is required by the spec and had no prior commit. No release/deploy acceptance is claimed.
+
+## SIS-683 re-dispatch (2026-10-18)
+
+Code at HEAD already matches review round 1 (BannerOnly without answers; no prefillVisualOnly guard; onClear deletes the real row). Validation still unmet: `/mnt/volume-molty-1` has 1018 MB free (< 2.5 GB gate), no Gradle 9.2.1 dist, no Android SDK. No changes to code; nothing reinstalled or bypassed.
