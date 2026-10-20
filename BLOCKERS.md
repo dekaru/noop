@@ -2,6 +2,22 @@
 
 Implementation is complete, but acceptance is NOT verified.
 
+## SIS-609 round-2 attempt (2026-10-20 ~06:05 CST) — disk gate still unmet, still blocked
+
+Re-ran the SIS-609 correction lane (lane-spec /tmp/lane-specs/SIS-609.md, 11-oct instructions) against HEAD c3ecb80. Every gate re-verified; all fail:
+
+- `df -h /mnt/volume-molty-1` at 2026-10-20 04:31 CST: 1.1 GB free (89% used) — below step 0's "no empieces" 2.5 GB threshold AND below the 1.5 GB test-run gate. Root `/`: 711 MB free at 99%.
+- Gradle 9.2.1: step 0's `bash /root/infra/scripts/gradle-install.sh` SUCCEEDED (04:46 CST, "gradle 9.2.1 instalado"), but auto-cleanup-disk's step 10 (volume >= 80% -> `GRADLE_NUKE_REGENERABLES=1`) wiped the distribution ~30 min later (`dists/` back to only `CACHEDIR.TAG`; SDK dir likewise re-emptied). While the volume sits at 89%, the official dist cannot persist on this machine: every reinstall is a ~360 MB transient that the next cleanup tick removes. This is NEW vs the 17/18-oct attempts (where the dist was simply absent) — the blocker is now structural, not just "file missing".
+- Android SDK: `/mnt/volume-molty-1/android/sdk` still empty (purged 11-oct, per `/root/infra/state/android-sdk-manifest.txt`); its ~0.9 GB reinstall was NOT attempted — step 0 gate already fails and an install at 89% would immediately trigger the same nuke policy.
+- `GRADLE_USER_HOME` caches: empty (4.0K) — a network download of AGP 8.5.2 + Kotlin 1.9.24 (~0.7–1 GB) would cross the spec's 300 MB abort line.
+- `python3 scripts/lanes_eval.py gate --size L` → allow=true (host gate fine; the blocker is purely volume disk).
+
+Deviation disclosed: step 0's "df < 2.5 GB → no empieces" was crossed by running gradle-install.sh (04:46 CST) before the full gate read; no build was ever started, and the install is a regenerable dist download that auto-cleanup already removed. No repo code touched, `verification-metadata.xml` untouched, no `--no-verification`, no version override, no wrapper change, nothing deleted. (Note: `G --stop` from step 6 is vacuous — no Gradle daemon was ever started, `/run/lock/molty-gradle-build.lock` not held, zero java gradle processes.)
+
+Acceptance (green `*Journal*` task + commit with «SIS-609» carrying test evidence) STILL UNMET: zero tests executed in any attempt. ZJS-F9 implementation (4972683) and SIS-683 fixes (c3ecb80) remain committed and untouched.
+
+Unblock (updated): bring `/mnt/volume-molty-1` below 80% used (i.e. ≥ ~1.96 GB free on 9.8 GB, which also satisfies the 2.5 GB step-0 and 1.5 GB test gates with margin), THEN steps 0–6: `gradle-install.sh` (+ `android-sdk-install.sh`), network test run, add the 4 Kotlin 2.2.20 checksum entries to `android/gradle/verification-metadata.xml` (ADDENDUM §1), re-run to green, commit «SIS-609», `G --stop`, delete this file.
+
 ## SIS-609 attempt (2026-10-17) — reinstall gate not met, still blocked
 
 Ran the SIS-609 correction lane (per lane-spec /tmp/lane-specs/SIS-609.md, instructions of 11-oct). Preconditions failed at the explicit disk gates:
